@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Python Code Analyzer (Optimized)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h2, h3 { color: #333; }
+    pre { background: #f4f4f4; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap; }
+    input[type="file"] { margin-bottom: 10px; }
+    button { padding: 6px 12px; cursor: pointer; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+</head>
+<body>
+  <h2>📂 Upload File</h2>
+  <input type="file" id="fileInput" accept=".py">
+  <button onclick="analyzeCode()">Analyze</button>
+
+  <h3>📊 Analysis Results:</h3>
+  <pre id="output"> </pre>
+
+  <script>
+    let pyodide;
+
+    async function loadPyodideEnv() {
+      pyodide = await loadPyodide();
+      await pyodide.runPythonAsync(`
+          import json
+          import re
+
+          def analyze_code(code):
+              issues = []
+              lines = code.splitlines()
+              total_lines = len(lines)
+
+              for i, line in enumerate(lines):
+                  lineno = i + 1
+                  stripped = line.strip()
+
+                  # Rule 1: Missing docstring
+                  if stripped.startswith(("def ", "class ")):
+                      if i + 1 < total_lines:
+                          next_line = lines[i + 1].strip()
+                          if not (next_line.startswith('"""') or next_line.startswith("'''")):
+                              issues.append({"line": lineno, "description": "Missing docstring"})
+
+                  # Rule 2: Possibly unused import
+                  if stripped.startswith("import") and "#" not in line:
+                      try:
+                          imported = stripped.split()[1]
+                          pattern = r'\\b' + re.escape(imported) + r'\\b'
+                          if not re.search(pattern, code[len(line):]):
+                              issues.append({"line": lineno, "description": f"Possibly unused import: '{imported}'"})
+                      except IndexError:
+                          issues.append({"line": lineno, "description": "Malformed import statement"})
+
+                  # Rule 3: Tab used
+                  if "\\t" in line:
+                      issues.append({"line": lineno, "description": "Tab used for indentation (use spaces)"})
+
+                  # Rule 4: Line too long
+                  if len(line) > 79:
+                      issues.append({"line": lineno, "description": "Line exceeds 79 characters"})
+
+              issue_penalty = len(issues)
+              score = max(0, 10 - (issue_penalty / max(total_lines, 1)) * 10)
+              return json.dumps({
+                  "score": round(score, 2),
+                  "issues": issues
+              })
+      `);
+    }
+
+    loadPyodideEnv();
+
+    async function analyzeCode() {
+      const fileInput = document.getElementById("fileInput");
+      const output = document.getElementById("output");
+
+      if (fileInput.files.length === 0) {
+        output.textContent = "❌ Please select a Python (.py) file.";
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (!file.name.endsWith('.py')) {
+        output.textContent = "❌ Only Python (.py) files are allowed.";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = async function (e) {
+        const code = e.target.result;
+
+        try {
+          const result = await pyodide.runPythonAsync(`
+            analyze_code(${JSON.stringify(code)})
+          `);
+
+          const parsed = JSON.parse(result);
+
+          let report = `🌟 Code Quality Score: ${parsed.score}/10\n`;
+          report += `🪲 Total Issues Found: ${parsed.issues.length}\n\n`;
+
+          if (parsed.issues.length > 0) {
+            report += "⚠️ Issues:\n";
+            parsed.issues.forEach(i => {
+              report += `➡ Line ${i.line}: ${i.description}\n`;
+            });
+          } else {
+            report += "✅ No issues found! Code looks clean.\n";
+          }
+
+          output.textContent = report;
+        } catch (err) {
+          output.textContent = `❌ Error analyzing code: ${err.message}`;
+        }
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+/* Reset & Base Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #e0f7fa, #80deea);
+    padding: 30px;
+    margin: 0;
+}
+
+/* Main Card Container */
+.container {
+    background: #ffffff;
+    padding: 40px;
+    max-width: 600px;
+    margin: auto;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+}
+
+.container:hover {
+    transform: translateY(-4px);
+}
+
+/* Headings */
+h2, h3 {
+    color: #00796b;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Result Box */
+.result {
+    background: #f1f8e9;
+    border-left: 5px solid #8bc34a;
+    padding: 15px;
+    margin-top: 25px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* File input */
+input[type="file"] {
+    display: block;
+    margin: 20px auto 10px;
+    padding: 6px;
+    border-radius: 5px;
+}
+
+/* Button Styling */
+button {
+    background-color: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #004d40;
+    transform: scale(1.05);
+}
+
+/* Error Message */
+.error {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    h2, h3 {
+        font-size: 20px;
+    }
+
+    button {
+        width: 100%;
+    }
+}
